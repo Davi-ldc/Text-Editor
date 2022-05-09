@@ -89,3 +89,73 @@ root.mainloop()
 
     for i in range(0,3):
         messagebox.showinfo(title="Sugestão", message=response[i]
+
+                            
+                            
+                            
+#-----------------------------
+import tkinter as tk
+from tkinter import *
+from tkinter import messagebox
+from tkinter.font import Font
+from functools import partial
+import os
+from openai_api import OpenAIGPT2
+
+gpt2 = OpenAIGPT2()
+
+root = tk.Tk()
+root.geometry("800x600")
+root.title("Text Generator")
+
+# Define a font
+myFont = Font(family="Helvetica", size=12, weight="bold")
+
+# Function to call when the user clicks the "Suggest" button
+def show_suggestions():
+
+    # Get the text from the input box
+    text = input_box.get("1.0", END)
+    # Generate suggestions
+    suggestions = gpt2.get_suggestions(text)
+
+    # Destroy the current window
+    root.destroy()
+
+    # Create a new window to show the suggestions
+    suggestions_window = tk.Tk()
+    suggestions_window.geometry("800x600")
+    suggestions_window.title("Suggestions")
+
+    # Display the suggestions
+    for i in range(len(suggestions)):
+        suggestion_label = Label(suggestions_window, text=suggestions[i])
+        suggestion_label.pack()
+
+        # Create a button for each suggestion
+        accept_button = tk.Button(suggestions_window, text="Accept Suggestion", command=partial(accept_suggestion, suggestions[i]))
+        accept_button.pack()
+    
+    suggestions_window.mainloop()
+
+# Function to call when the user clicks the "Accept Suggestion" button
+def accept_suggestion(suggestion):
+    # Get the text from the input box
+    text = input_box.get("1.0", END)
+    # Append the suggestion to the text
+    text += suggestion
+    # Set the text of the input box to the new text
+    input_box.delete("1.0", END)
+    input_box.insert(tk.END, text)
+    # Destroy the suggestions window
+    root.destroy()
+
+# Define the input box
+input_box = tk.Text(root)
+input_box.pack()
+
+# Define the "Suggest" button
+suggest_button = tk.Button(root, text="Suggest", command=show_suggestions)
+suggest_button.pack()
+
+root.mainloop()
