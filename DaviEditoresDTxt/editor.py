@@ -11,7 +11,7 @@ from tkinter import font, colorchooser, filedialog, messagebox
 from tkinter import ttk
 
 
-openai.api_key = "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"
+openai.api_key = "YOUR API KEY"
 
 #creditos: https://github.com/Devansh2005/Text-Editor
 main_application=tk.Tk()
