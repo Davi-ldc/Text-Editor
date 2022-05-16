@@ -1,6 +1,5 @@
 import tkinter as tk
 import pyttsx3
-import speech_recognition as sr
 import random
 import openai
 import googletrans
@@ -9,15 +8,19 @@ import os
 from tkinter import Tk, ttk
 from tkinter import font, colorchooser, filedialog, messagebox
 from tkinter import ttk
+from PIL import Image, ImageTk
 
-
-openai.api_key = "YOUR API KEY"
+openai.api_key = ""
 
 #creditos: https://github.com/Devansh2005/Text-Editor
 main_application=tk.Tk()
 main_application.geometry('1000x600')
 main_application.title("Davi editores")
 
+#sugestion parameters
+temperature = 0.7 # enquanto mais alto mais criativo
+frequency_penalty = 0 # enquanto mais alto mais pe no chão é sugestão 
+Presence_penalty = 0 # enquanto mais alto mais mundo da lua
 ######################   main menu   ############### ############################
 # ---------&&&&&&&&&&& End main menu -----------------------------------------------
 main_menu= tk.Menu()
@@ -56,6 +59,7 @@ color_dict={
 
 
 #tools 
+sugestion_settings_icon = tk.PhotoImage(file="icons/sugestion_settings.png")
 sujestion_icon = tk.PhotoImage(file="icons/suggestion.png")
 correct_icon = tk.PhotoImage(file="icons/correct.png")
 translate_icon = tk.PhotoImage(file="icons/translate.png")
@@ -256,10 +260,64 @@ def text_formatter(phrase):
 
 #tools functions
 
-def sugestion(event=None):
+def Open_sugestion_window(event=None):
+    global temperature  #enquanto mais alto mais criativo
+    global frequency_penalty # enquanto mais alto mais pe no chão é sugestão 
+    global Presence_penalty # enquanto mais alto mais mundo da lua
     window = tk.Tk()
-    window.title("Seugestões")
-    window.geometry("800x400")
+    window.title("Configurações de Sugestão")
+    whidth = window.winfo_screenwidth()
+    height = window.winfo_screenheight()
+    window.geometry(f'{whidth}x{height}')
+
+    #lb 2 is the explanation of the config (lb)
+
+    #temperature
+    tp_lb = tk.Label(window, text="Criatividade", font=("Arial", 12), fg="black")
+    tp_lb.grid(row=2, column=0)
+    
+    t = tk.DoubleVar()
+    tp_scale = tk.Scale(window, from_=0.0, to=1.0, orient=tk.HORIZONTAL, sliderlength=60,  length=400, showvalue=0, tickinterval=0.1, resolution=0.1, variable=t)
+    tp_scale.grid(row=2, column=1)
+    #set default value
+    tp_scale.set(temperature)
+    tp_lb2 = tk.Label(window, text="""Valores mais altos significam que a ia assumirá mais riscos.
+                   use 0,9 para textos mais criativos e 0 para aqueles com uma resposta bem definida.""", font=("Arial", 12), fg="black", width=73, height=5)
+    tp_lb2.grid(row=2, column=2)
+    
+    #presence_penalty
+    pp_lb = tk.Label(window, text="Desencentivar Repetições", font=("Arial", 12), fg="black")
+    pp_lb.grid(row=3, column=0)
+    
+    p = tk.DoubleVar()
+    pp_scale = tk.Scale(window, from_= 0, to= 2, orient=tk.HORIZONTAL, sliderlength=60,  length=500, showvalue=0, tickinterval=0.1, resolution=0.1, variable=p)
+    pp_scale.grid(row=3, column=1)
+    #set default value
+    pp_scale.set(Presence_penalty)
+    
+    pp_lb2 = tk.Label(window, text="""Enquanto mais baixo maior a chance de ele falar sobre varios assuntos.
+                      (é bom usar um valor entre 0.0 e 1 para evitar repetições)
+                      (use um numero maior que 1 quando você quer que ele tenha uma ideia por você
+                      tipo quando você não sabe o que falar mas ainda precisa de 10 linhas pra
+                      chegar no limite de linhas)""" , font=("Arial", 12), fg="black", width=73, height=5)
+    pp_lb2.grid(row=3, column=2)
+    
+    
+    
+     
+     
+
+
+    
+    
+    window.mainloop()
+
+tools.add_command(label="Configurações de Sugestões", image=sugestion_settings_icon, compound=tk.LEFT, accelerator="Ctrl+Alt+D", command = Open_sugestion_window)
+
+def simple_sugestion(event=None):
+    global temperature  #enquanto mais alto mais criativo
+    global frequency_penalty # enquanto mais alto mais pe no chão é sugestão 
+    global Presence_penalty # enquanto mais alto mais mundo da lua
     
     text = text_editor.get(1.0, 'end')
     if text == "":
@@ -268,34 +326,22 @@ def sugestion(event=None):
     Sugestion = openai.Completion.create(
       engine="text-davinci-002",
       prompt=text,
-      temperature=0.7,
+      temperature=temperature,
       max_tokens=256,
       top_p=1,
-      frequency_penalty=0,
-      presence_penalty=0
+      frequency_penalty=frequency_penalty,
+      presence_penalty=Presence_penalty,
     )
-    def accept_sugestion(event=None, window=window, sugestion=Sugestion):
-        text_editor.insert(tk.INSERT, Sugestion.choices[0].text)
-        window.destroy()
-        
-    #add button when buttons is clicked the suggestion above will be added to the text
-    button = tk.Button(window, text='aceitar sugestão', command=accept_sugestion)
-    #add button to window
-    button.pack()
-    #add text above the button with the suggestion
-    #obs Text may not fit a line for solve the problem i will use a label with 50 px width
-    label = tk.Label(window, text=Sugestion.choices[0].text, width=200, height=200)
-    #add label to window
-    label.pack()
-
-        
-    window.mainloop()
-
-tools.add_command(label="Sugerir", image=sujestion_icon, compound=tk.LEFT, accelerator="Ctrl+D", command = sugestion)
+    text_editor.insert(tk.INSERT, Sugestion.choices[0].text)
+tools.add_command(label="Sugerir", image=sujestion_icon, compound=tk.LEFT, accelerator="Ctrl+D", command = simple_sugestion)
 
 def Translate():
-    os.system("DaviTradutores.py")
-tools.add_command(label="Traduzir", image=translate_icon, compound=tk.LEFT, accelerator="Ctrl+T", command = Translate)
+    os.system('DaviTradutores.py')
+
+
+
+    
+tools.add_command(label="  Traduzir", image=translate_icon, compound=tk.LEFT, accelerator="Ctrl+T", command = Translate)
 
 
 def correct_erros(event=None):
@@ -556,6 +602,7 @@ main_application.bind("<Control-s>", save_file)
 main_application.bind("<Control-Alt-s>", save_as)
 main_application.bind("<Control-q>", exit_func)
 main_application.bind("<Control-f>", find_func)
-main_application.bind("<Control-d>", sugestion)
-
+main_application.bind("<Control-Alt-d>", Open_sugestion_window)
+main_application.bind("<Control-d>", simple_sugestion)
 main_application.mainloop()
+
