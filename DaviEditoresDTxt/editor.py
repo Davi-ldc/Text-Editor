@@ -13,7 +13,6 @@ from torch import ge
 
 openai.api_key = "YOUR_API_KEY"
 
-#creditos: https://github.com/Devansh2005/Text-Editor
 main_application=tk.Tk()
 main_application.geometry('1000x600')
 main_application.title("Davi editores")
